@@ -33,7 +33,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Generate Android Project & Assets
+      - name: Generate Android Project & Process User Icon
         run: |
           rm -rf android-project
           mkdir -p android-project/app/src/main/assets
@@ -46,25 +46,41 @@ jobs:
           mkdir -p android-project/app/src/main/res/mipmap-xxhdpi
           mkdir -p android-project/app/src/main/res/mipmap-xxxhdpi
 
-          # Копирование index.html
+          # Копируем веб-файл
           if [ -f "index.html" ]; then
             cp index.html android-project/app/src/main/assets/index.html
           fi
 
-          # Скачивание и генерация иконки приложения
+          # Автоматический поиск любого фото пользователя в репозитории или генерация иконки конфетти
           python3 - << 'EOF'
-          import urllib.request
-          from PIL import Image
-          import os
+          import os, glob, math
+          from PIL import Image, ImageDraw
 
-          icon_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/party-popper.png"
-          # Используем резервную прямую генерацию фирменной иконки
-          img = Image.new('RGBA', (512, 512), color=(142, 68, 173, 255))
-          try:
-              urllib.request.urlretrieve("https://i.ibb.co/6yVkmgN/confichat-icon.png", "icon_src.png")
-              img = Image.open("icon_src.png")
-          except:
-              pass
+          found_img = None
+          for pattern in ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.PNG", "*.JPG", "*.JPEG"]:
+              for file in glob.glob(pattern):
+                  if "launcher" not in file:
+                      found_img = file
+                      break
+              if found_img:
+                  break
+
+          if found_img:
+              print(f"Found user icon: {found_img}")
+              base_img = Image.open(found_img).convert("RGBA")
+          else:
+              print("Generating Confichat Lollipop & Confetti 3D icon...")
+              base_img = Image.new("RGBA", (512, 512), color=(142, 68, 173, 255))
+              draw = ImageDraw.Draw(base_img)
+              # Фирменный фиолетовый фон
+              draw.rounded_rectangle([(16, 16), (496, 496)], radius=110, fill=(155, 89, 182, 255))
+              # Розовый леденец диалога
+              draw.ellipse([(90, 80), (420, 390)], fill=(255, 118, 117, 255))
+              draw.ellipse([(140, 130), (370, 340)], fill=(255, 234, 167, 255))
+              # Хлопушка с конфетти
+              draw.polygon([(340, 320), (430, 430), (380, 460), (310, 350)], fill=(232, 67, 147, 255))
+              draw.ellipse([(410, 170), (430, 190)], fill=(253, 203, 110, 255))
+              draw.ellipse([(110, 310), (130, 330)], fill=(116, 185, 255, 255))
 
           sizes = {
               "mipmap-mdpi": 48,
@@ -73,8 +89,9 @@ jobs:
               "mipmap-xxhdpi": 144,
               "mipmap-xxxhdpi": 192
           }
+
           for folder, size in sizes.items():
-              resized = img.resize((size, size), Image.Resampling.LANCZOS)
+              resized = base_img.resize((size, size), Image.Resampling.LANCZOS)
               resized.save(f"android-project/app/src/main/res/{folder}/ic_launcher.png")
               resized.save(f"android-project/app/src/main/res/{folder}/ic_launcher_round.png")
           EOF
@@ -111,7 +128,7 @@ jobs:
           android.nonTransitiveRClass=true
           EOF
 
-          # Настройка сборщика с версией 1.0.2 (versionCode 2)
+          # Сборка с официальной версией v1.0.2
           cat << 'EOF' > android-project/app/build.gradle
           plugins {
               id 'com.android.application'
@@ -199,7 +216,7 @@ jobs:
               <style name="Theme.Confichat" parent="Theme.AppCompat.NoActionBar">
                   <item name="android:statusBarColor">#d63031</item>
                   <item name="android:navigationBarColor">#ffffff</item>
-                  <item name="android:windowBackground">#ffffff</item>
+                  <item name="android:windowBackground">#fff2f2</item>
               </style>
           </resources>
           EOF
@@ -215,13 +232,13 @@ jobs:
           <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#ffffff">
+              android:background="#fff2f2">
 
               <WebView
                   android:id="@+id/confichatWebView"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
-                  android:background="#ffffff" />
+                  android:background="#fff2f2" />
           </FrameLayout>
           EOF
 
@@ -249,7 +266,7 @@ jobs:
                   setContentView(R.layout.activity_main)
 
                   webView = findViewById(R.id.confichatWebView)
-                  webView.setBackgroundColor(Color.WHITE)
+                  webView.setBackgroundColor(Color.parseColor("#fff2f2"))
 
                   requestPermissions()
                   setupWebView()
@@ -319,5 +336,5 @@ jobs:
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: Confichat-APK-v1.0.2
+          name: Confichat-v1.0.2-APK
           path: android-project/app/build/outputs/apk/debug/app-debug.apk
