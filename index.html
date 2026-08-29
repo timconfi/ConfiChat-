@@ -1,17 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Confichat — Мессенджер</title>
-
-  <!-- PWA & Android WebAPK Настройки (Для установки как приложение) -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#d63031">
-  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Confichat%22%2C%22short_name%22%3A%22Confichat%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23121212%22%2C%22theme_color%22%3A%22%23d63031%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F1041%2F1041916.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 
   <!-- FIREBASE SCRIPTS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -173,7 +165,6 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    /* 0. АВТОРИЗАЦИЯ */
     #screen-auth {
       display: none;
       position: absolute;
@@ -248,7 +239,6 @@
       background: var(--accent-hover);
     }
 
-    /* 1. СПИСОК ЧАТОВ */
     #screen-chats {
       height: 100%;
       background: var(--sidebar-bg);
@@ -422,7 +412,6 @@
       z-index: 15;
     }
 
-    /* 2. ПРАВАЯ ПАНЕЛЬ */
     #emptyChatPlaceholder {
       display: flex;
       flex: 1;
@@ -904,4 +893,41 @@
     }
 
     .theme-card {
-      border: 2px solid va
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--input-bg);
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    .theme-card.active {
+      border-color: var(--accent);
+      background: rgba(214, 48, 49, 0.08);
+      font-weight: bold;
+    }
+
+    .theme-preview-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin: 0 auto 6px;
+    }
+
+    .setting-row-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      color: var(--text-main);
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      width: 100%;
+      text-align
