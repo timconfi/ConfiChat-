@@ -13,6 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
@@ -22,11 +27,37 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Prepare Web Assets
+        run: |
+          mkdir -p www
+          if [ -f "index.html" ]; then
+            cp index.html www/
+          elif [ -f "app/src/main/assets/index.html" ]; then
+            cp app/src/main/assets/index.html www/index.html
+          else
+            echo "<h1>Confichat</h1>" > www/index.html
+          fi
+
+      - name: Generate Android Project
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/android @capacitor/cli
+          npx cap init Confichat com.confichat.app --web-dir www
+          npx cap add android
+
+      - name: Configure Android Permissions (Camera, Mic, Audio)
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />' $MANIFEST
+
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Confichat-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
