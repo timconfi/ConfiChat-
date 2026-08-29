@@ -27,21 +27,16 @@ jobs:
 
       - name: Generate Android Project & Assets
         run: |
-          # Создаем структуру проекта Android
           rm -rf android-project
           mkdir -p android-project/app/src/main/assets
           mkdir -p android-project/app/src/main/java/com/confichat/app
           mkdir -p android-project/app/src/main/res/layout
           mkdir -p android-project/app/src/main/res/values
 
-          # Ищем и копируем index.html
           if [ -f "index.html" ]; then
             cp index.html android-project/app/src/main/assets/index.html
-          elif [ -f "app/src/main/assets/index.html" ]; then
-            cp app/src/main/assets/index.html android-project/app/src/main/assets/index.html
           fi
 
-          # Настройки проекта settings.gradle
           cat << 'EOF' > android-project/settings.gradle
           pluginManagement {
               repositories {
@@ -61,7 +56,6 @@ jobs:
           include ':app'
           EOF
 
-          # Корневой build.gradle
           cat << 'EOF' > android-project/build.gradle
           plugins {
               id 'com.android.application' version '8.2.2' apply false
@@ -69,14 +63,12 @@ jobs:
           }
           EOF
 
-          # Свойства gradle.properties
           cat << 'EOF' > android-project/gradle.properties
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           android.useAndroidX=true
           android.nonTransitiveRClass=true
           EOF
 
-          # Сборщик приложения app/build.gradle
           cat << 'EOF' > android-project/app/build.gradle
           plugins {
               id 'com.android.application'
@@ -121,7 +113,6 @@ jobs:
           }
           EOF
 
-          # Манифест приложения с разрешениями для камеры, микрофона и сети
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -147,7 +138,7 @@ jobs:
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
-                      android:configChanges="orientation|screenSize|keyboardHidden"
+                      android:configChanges="orientation|screenSize|keyboardHidden|screenLayout"
                       android:windowSoftInputMode="adjustResize">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -158,12 +149,12 @@ jobs:
           </manifest>
           EOF
 
-          # Темы и ресурсы
           cat << 'EOF' > android-project/app/src/main/res/values/themes.xml
           <resources>
               <style name="Theme.Confichat" parent="Theme.AppCompat.NoActionBar">
                   <item name="android:statusBarColor">#d63031</item>
-                  <item name="android:navigationBarColor">#121212</item>
+                  <item name="android:navigationBarColor">#ffffff</item>
+                  <item name="android:windowBackground">#ffffff</item>
               </style>
           </resources>
           EOF
@@ -174,29 +165,30 @@ jobs:
           </resources>
           EOF
 
-          # Разметка экрана
           cat << 'EOF' > android-project/app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#121212">
+              android:background="#ffffff">
 
               <WebView
                   android:id="@+id/confichatWebView"
                   android:layout_width="match_parent"
-                  android:layout_height="match_parent" />
+                  android:layout_height="match_parent"
+                  android:background="#ffffff" />
           </FrameLayout>
           EOF
 
-          # Нативный код MainActivity.kt с автоматическим предоставлением разрешений
           cat << 'EOF' > android-project/app/src/main/java/com/confichat/app/MainActivity.kt
           package com.confichat.app
 
           import android.Manifest
           import android.content.pm.PackageManager
+          import android.graphics.Color
           import android.os.Build
           import android.os.Bundle
+          import android.view.View
           import android.webkit.*
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
@@ -212,6 +204,9 @@ jobs:
                   setContentView(R.layout.activity_main)
 
                   webView = findViewById(R.id.confichatWebView)
+                  webView.setBackgroundColor(Color.WHITE)
+                  webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
                   requestPermissions()
                   setupWebView()
               }
@@ -236,12 +231,12 @@ jobs:
                   webView.settings.apply {
                       javaScriptEnabled = true
                       domStorageEnabled = true
+                      databaseEnabled = true
                       allowFileAccess = true
                       allowContentAccess = true
+                      allowFileAccessFromFileURLs = true
+                      allowUniversalAccessFromFileURLs = true
                       mediaPlaybackRequiresUserGesture = false
-                      databaseEnabled = true
-                      useWideViewPort = true
-                      loadWithOverviewMode = true
                       mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                   }
 
